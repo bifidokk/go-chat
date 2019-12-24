@@ -1,32 +1,63 @@
 package main
 
-const (
-	JoinCommand = "join"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strconv"
 )
 
-type Event struct {
-	Name string `json:"event"`
-}
+const (
+	JoinType   = "join"
+	JoinedType = "joined"
+)
 
 type Message struct {
-	Data MessageData `json:"data"`
+	Type string      `json:"type"`
+	Msg  interface{} `json:"msg"`
 }
 
-type MessageData interface{}
-
-type JoinMessage struct {
+type Join struct {
 	Email string `json:"email"`
 }
 
-type SendMessage struct {
-	Message string `json:"message"`
+type Joined struct {
+	Email string `json:"email"`
 }
 
-func NewMessageData(event Event) MessageData {
-	switch event.Name {
-	case JoinCommand:
-		return JoinMessage{}
+func createMessage(input []byte) (Message, error) {
+	var msg json.RawMessage
+	message := Message{
+		Msg: &msg,
 	}
 
-	return SendMessage{}
+	jsonInput, err := strconv.Unquote(string(input))
+	if err != nil {
+		return message, err
+	}
+
+	if err := json.Unmarshal([]byte(jsonInput), &message); err != nil {
+		return message, err
+	}
+
+	switch message.Type {
+	case JoinType:
+		var s Join
+		if err := json.Unmarshal(msg, &s); err != nil {
+			return message, err
+		}
+
+		message.Msg = s
+	default:
+		err = errors.New(fmt.Sprintf("unknown message type: %q", message.Type))
+	}
+
+	return message, err
+}
+
+func newMessage(messageType string, message interface{}) *Message {
+	return &Message{
+		Type: messageType,
+		Msg:  message,
+	}
 }

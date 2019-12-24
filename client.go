@@ -25,9 +25,10 @@ var (
 )
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	email string
+	hub   *Hub
+	conn  *websocket.Conn
+	send  chan []byte
 }
 
 var upgrader = websocket.Upgrader{
@@ -107,7 +108,8 @@ func (client *Client) readPump() {
 		}
 
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		client.hub.broadcast <- message
+		clientMsg := &ClientMsg{client, message}
+		client.hub.receiver <- clientMsg
 	}
 }
 
