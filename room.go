@@ -14,3 +14,10 @@ func (r *Room) join(c *Client) {
 	msg := newMessage(JoinedType, &Joined{c.email})
 	c.conn.WriteJSON(msg)
 }
+
+func (r *Room) broadcast(m *SendMsg) {
+	msg := newMessage(MessagesType, m)
+	for c := range r.clients {
+		c.conn.WriteJSON(msg)
+	}
+}

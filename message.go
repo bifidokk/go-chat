@@ -2,14 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"strconv"
 )
 
 const (
-	JoinType   = "join"
-	JoinedType = "joined"
+	JoinType     = "join"
+	SendMsgType  = "send-msg"
+	JoinedType   = "joined"
+	MessagesType = "msg"
 )
 
 type Message struct {
@@ -25,10 +25,21 @@ type Joined struct {
 	Email string `json:"email"`
 }
 
+type SendMsg struct {
+	User string `json:"user"`
+	Type string `json:"type"`
+	Text string `json:"msg"`
+}
+
+var typeHandlers = map[string]func() interface{}{
+	JoinType:    func() interface{} { return &Join{} },
+	SendMsgType: func() interface{} { return &SendMsg{} },
+}
+
 func createMessage(input []byte) (Message, error) {
-	var msg json.RawMessage
+	var raw json.RawMessage
 	message := Message{
-		Msg: &msg,
+		Msg: &raw,
 	}
 
 	jsonInput, err := strconv.Unquote(string(input))
@@ -40,17 +51,12 @@ func createMessage(input []byte) (Message, error) {
 		return message, err
 	}
 
-	switch message.Type {
-	case JoinType:
-		var s Join
-		if err := json.Unmarshal(msg, &s); err != nil {
-			return message, err
-		}
-
-		message.Msg = s
-	default:
-		err = errors.New(fmt.Sprintf("unknown message type: %q", message.Type))
+	msg := typeHandlers[message.Type]()
+	if err := json.Unmarshal(raw, msg); err != nil {
+		return message, err
 	}
+
+	message.Msg = msg
 
 	return message, err
 }

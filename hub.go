@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -52,18 +53,16 @@ func (h *Hub) run() {
 				log.Println(err)
 				return
 			}
+
 			switch msg := msg.Msg.(type) {
-			case Join:
+			case *Join:
 				m.client.email = msg.Email
 				h.rooms[defaultRoomName].join(m.client)
+			case *SendMsg:
+				h.rooms[defaultRoomName].broadcast(msg)
+			default:
+				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
 		}
-	}
-}
-
-func initRoom() *Room {
-	return &Room{
-		name:    defaultRoomName,
-		clients: make(map[*Client]bool),
 	}
 }
