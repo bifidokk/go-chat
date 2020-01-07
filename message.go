@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"strconv"
+	"time"
 )
 
 const (
@@ -11,6 +12,13 @@ const (
 	JoinedType   = "joined"
 	MessagesType = "msg"
 )
+
+const (
+	TextMsg SendMessageType = "text"
+	LogMsg                  = "log"
+)
+
+type SendMessageType string
 
 type Message struct {
 	Type string      `json:"type"`
@@ -26,9 +34,10 @@ type Joined struct {
 }
 
 type SendMsg struct {
-	User string `json:"user"`
-	Type string `json:"type"`
-	Text string `json:"msg"`
+	User     string          `json:"user"`
+	Type     SendMessageType `json:"type"`
+	Text     string          `json:"msg"`
+	SendDate time.Time       `json:"time"`
 }
 
 var typeHandlers = map[string]func() interface{}{

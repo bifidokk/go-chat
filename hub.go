@@ -56,13 +56,23 @@ func (h *Hub) run() {
 
 			switch msg := msg.Msg.(type) {
 			case *Join:
-				m.client.email = msg.Email
-				h.rooms[defaultRoomName].join(m.client)
+				h.joinRoom(m.client, msg)
 			case *SendMsg:
-				h.rooms[defaultRoomName].broadcast(msg)
+				h.sendMessage(m.client, msg)
 			default:
 				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
 		}
 	}
+}
+
+func (h *Hub) joinRoom(client *Client, msg *Join) {
+	client.room = defaultRoomName
+	client.email = msg.Email
+	h.rooms[defaultRoomName].join(client)
+}
+
+func (h *Hub) sendMessage(client *Client, msg *SendMsg) {
+	msg.User = client.email
+	h.rooms[client.room].message(msg)
 }

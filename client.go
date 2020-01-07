@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -25,6 +26,7 @@ var (
 )
 
 type Client struct {
+	room  string
 	email string
 	hub   *Hub
 	conn  *websocket.Conn
