@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -37,9 +36,11 @@ func (r *Room) message(m *SendMsg) {
 }
 
 func (r *Room) userList(c *Client) {
-	var users []string
+	var users []Joined
 	for client := range r.clients {
-		users = append(users, client.email)
+		users = append(users, Joined{
+			Email: client.email,
+		})
 	}
 
 	msg := newMessage(UserListType, &UserList{
@@ -51,7 +52,6 @@ func (r *Room) userList(c *Client) {
 
 func (r *Room) broadcast(message *Message) {
 	for c := range r.clients {
-		fmt.Println(message)
 		c.conn.WriteJSON(message)
 	}
 }

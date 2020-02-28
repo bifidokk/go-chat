@@ -44,7 +44,7 @@ type SendMsg struct {
 type GetUserList struct{}
 
 type UserList struct {
-	Users []string
+	Users []Joined `json:"users"`
 }
 
 var typeHandlers = map[string]func() interface{}{
