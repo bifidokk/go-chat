@@ -43,6 +43,7 @@ func (h *Hub) run() {
 			h.clients[client] = true
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
+				h.leaveRoom(client)
 				delete(h.clients, client)
 				close(client.send)
 			}
@@ -72,6 +73,14 @@ func (h *Hub) joinRoom(client *Client, msg *Join) {
 	client.room = defaultRoomName
 	client.email = msg.Email
 	h.rooms[defaultRoomName].join(client)
+}
+
+func (h *Hub) leaveRoom(client *Client) {
+	room := h.rooms[client.room]
+
+	if room != nil {
+		room.remove(client)
+	}
 }
 
 func (h *Hub) sendMessage(client *Client, msg *SendMsg) {
