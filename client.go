@@ -10,14 +10,17 @@ import (
 )
 
 const (
-	// Period to read next message from the peer
-	pongWait = 60 * time.Second
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
 
-	// Period to send ping message to the peer
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 10 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 
-	writeWait      = 10 * time.Second
-	maxMessageSize = 512
+	// Maximum message size allowed from peer.
+	maxMessageSize = 8192
 )
 
 var (
@@ -39,79 +42,81 @@ var upgrader = websocket.Upgrader{
 }
 
 // Gets messages from the hub
-func (client *Client) writePump() {
+func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		client.conn.Close()
+		c.conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-client.send:
-			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
-
+		case message, ok := <-c.send:
 			if !ok {
-				client.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				// The hub closed the channel.
+				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			w, err := client.conn.NextWriter(websocket.TextMessage)
-
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
 
 			w.Write(message)
 
-			n := len(client.send)
-
+			// Add queued chat messages to the current websocket message.
+			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write(newline)
-				w.Write(<-client.send)
+				w.Write(<-c.send)
 			}
 
 			if err := w.Close(); err != nil {
 				return
 			}
 		case <-ticker.C:
-			client.conn.SetWriteDeadline(time.Now().Add(writeWait))
-
-			if err := client.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
 				return
 			}
 		}
 	}
 }
 
-// Send messages to the hub
-func (client *Client) readPump() {
+// write writes a message with the given message type and payload.
+func (c *Client) write(mt int, payload []byte) error {
+	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	return c.conn.WriteMessage(mt, payload)
+}
+
+// readPump pumps messages from the websocket connection to the hub.
+func (c *Client) readPump() {
 	defer func() {
-		client.hub.unregister <- client
-		client.conn.Close()
+		c.hub.unregister <- c
+		c.conn.Close()
 	}()
 
-	client.conn.SetReadLimit(maxMessageSize)
-	client.conn.SetReadDeadline(time.Now().Add(pongWait))
-	client.conn.SetPongHandler(
+	c.conn.SetReadLimit(maxMessageSize)
+	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.conn.SetPongHandler(
 		func(string) error {
-			client.conn.SetReadDeadline(time.Now().Add(pongWait))
+			c.conn.SetReadDeadline(time.Now().Add(pongWait))
 			return nil
 		})
 
 	for {
-		_, message, err := client.conn.ReadMessage()
+		_, message, err := c.conn.ReadMessage()
 
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
-
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		clientMsg := &ClientMsg{client, message}
-		client.hub.receiver <- clientMsg
+		clientMsg := &ClientMsg{c, message}
+		c.hub.receiver <- clientMsg
 	}
 }
 
@@ -133,5 +138,5 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client.hub.register <- client
 
 	go client.writePump()
-	go client.readPump()
+	client.readPump()
 }

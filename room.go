@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -16,23 +15,37 @@ func newRoom(name string) *Room {
 
 func (r *Room) join(c *Client) {
 	r.clients[c] = true
-	msg := newMessage(JoinedType, &Joined{c.email})
-	c.conn.WriteJSON(msg)
-
-	msg = newMessage(MessagesType, &SendMsg{
-		User:     c.email,
-		Type:     LogMsg,
-		Text:     fmt.Sprintf("%s joined room", c.email),
-		SendDate: time.Now(),
+	msg := newMessage(JoinedType, &Joined{
+		Email: c.email,
+		Date:  time.Now(),
 	})
 
 	r.broadcast(msg)
+}
+
+func (r *Room) remove(c *Client) {
+	if _, ok := r.clients[c]; ok {
+		delete(r.clients, c)
+	}
 }
 
 func (r *Room) message(m *SendMsg) {
 	m.SendDate = time.Now()
 	msg := newMessage(MessagesType, m)
 	r.broadcast(msg)
+}
+
+func (r *Room) userList(c *Client) {
+	var users []string
+	for client := range r.clients {
+		users = append(users, client.email)
+	}
+
+	msg := newMessage(UserListType, &UserList{
+		Users: users,
+	})
+
+	c.conn.WriteJSON(msg)
 }
 
 func (r *Room) broadcast(message *Message) {

@@ -59,6 +59,8 @@ func (h *Hub) run() {
 				h.joinRoom(m.client, msg)
 			case *SendMsg:
 				h.sendMessage(m.client, msg)
+			case *GetUserList:
+				h.rooms[m.client.room].userList(m.client)
 			default:
 				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
@@ -73,6 +75,6 @@ func (h *Hub) joinRoom(client *Client, msg *Join) {
 }
 
 func (h *Hub) sendMessage(client *Client, msg *SendMsg) {
-	msg.User = client.email
+	msg.Email = client.email
 	h.rooms[client.room].message(msg)
 }

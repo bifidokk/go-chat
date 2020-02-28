@@ -7,18 +7,18 @@ import (
 )
 
 const (
-	JoinType     = "join"
-	SendMsgType  = "send-msg"
-	JoinedType   = "joined"
-	MessagesType = "msg"
+	JoinType        = "join"
+	SendMsgType     = "send-msg"
+	GetUserListType = "get-users"
+	JoinedType      = "joined"
+	MessagesType    = "msg"
+	UserListType    = "users"
 )
 
 const (
-	TextMsg SendMessageType = "text"
-	LogMsg                  = "log"
+	TextMsg = "text"
+	LogMsg  = "log"
 )
-
-type SendMessageType string
 
 type Message struct {
 	Type string      `json:"type"`
@@ -30,19 +30,27 @@ type Join struct {
 }
 
 type Joined struct {
-	Email string `json:"email"`
+	Email string    `json:"email"`
+	Date  time.Time `json:"date"`
 }
 
 type SendMsg struct {
-	User     string          `json:"user"`
-	Type     SendMessageType `json:"type"`
-	Text     string          `json:"msg"`
-	SendDate time.Time       `json:"time"`
+	Email    string    `json:"email"`
+	Type     string    `json:"type"`
+	Text     string    `json:"msg"`
+	SendDate time.Time `json:"date"`
+}
+
+type GetUserList struct{}
+
+type UserList struct {
+	Users []string
 }
 
 var typeHandlers = map[string]func() interface{}{
-	JoinType:    func() interface{} { return &Join{} },
-	SendMsgType: func() interface{} { return &SendMsg{} },
+	JoinType:        func() interface{} { return &Join{} },
+	SendMsgType:     func() interface{} { return &SendMsg{} },
+	GetUserListType: func() interface{} { return &GetUserList{} },
 }
 
 func createMessage(input []byte) (Message, error) {
