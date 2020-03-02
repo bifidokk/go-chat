@@ -27,6 +27,12 @@ func (r *Room) remove(c *Client) {
 	if _, ok := r.clients[c]; ok {
 		delete(r.clients, c)
 	}
+
+	msg := newMessage(LeftType, &Joined{
+		Email: c.email,
+	})
+
+	r.broadcast(msg)
 }
 
 func (r *Room) message(m *SendMsg) {

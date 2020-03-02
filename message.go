@@ -10,9 +10,11 @@ const (
 	JoinType        = "join"
 	SendMsgType     = "send-msg"
 	GetUserListType = "get-users"
-	JoinedType      = "joined"
-	MessagesType    = "msg"
-	UserListType    = "users"
+
+	JoinedType   = "joined"
+	MessagesType = "msg"
+	UserListType = "users"
+	LeftType     = "left"
 )
 
 const (
@@ -45,6 +47,10 @@ type GetUserList struct{}
 
 type UserList struct {
 	Users []Joined `json:"users"`
+}
+
+type Left struct {
+	Email string `json:"email"`
 }
 
 var typeHandlers = map[string]func() interface{}{
