@@ -28,6 +28,7 @@ var (
 	space   = []byte{' '}
 )
 
+// Client : connected client data
 type Client struct {
 	room  string
 	email string

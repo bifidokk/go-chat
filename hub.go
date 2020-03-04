@@ -9,6 +9,7 @@ const (
 	defaultRoomName = "main"
 )
 
+// Hub : store all chat objects
 type Hub struct {
 	clients    map[*Client]bool
 	rooms      map[string]*Room
@@ -18,6 +19,7 @@ type Hub struct {
 	unregister chan *Client
 }
 
+// ClientMsg : message from client
 type ClientMsg struct {
 	client *Client
 	msg    []byte

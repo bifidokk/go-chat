@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Client message type
 const (
 	JoinType        = "join"
 	SendMsgType     = "send-msg"
@@ -17,25 +18,30 @@ const (
 	LeftType     = "left"
 )
 
+// Client message content type
 const (
 	TextMsg = "text"
 	LogMsg  = "log"
 )
 
+// Message is abstract message struct
 type Message struct {
 	Type string      `json:"type"`
 	Msg  interface{} `json:"msg"`
 }
 
+// Join message
 type Join struct {
 	Email string `json:"email"`
 }
 
+// Joined message
 type Joined struct {
 	Email string    `json:"email"`
 	Date  time.Time `json:"date"`
 }
 
+// SendMsg message
 type SendMsg struct {
 	Email    string    `json:"email"`
 	Type     string    `json:"type"`
@@ -43,12 +49,15 @@ type SendMsg struct {
 	SendDate time.Time `json:"date"`
 }
 
+// GetUserList message
 type GetUserList struct{}
 
+// UserList message
 type UserList struct {
 	Users []Joined `json:"users"`
 }
 
+// Left message
 type Left struct {
 	Email string `json:"email"`
 }

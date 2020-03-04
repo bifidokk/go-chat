@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Room data
 type Room struct {
 	name    string
 	clients map[*Client]bool
