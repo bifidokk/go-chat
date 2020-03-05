@@ -141,3 +141,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 	client.readPump()
 }
+
+func (c *Client) joinedRoom() bool {
+	return c.room != ""
+}

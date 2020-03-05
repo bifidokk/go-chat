@@ -45,15 +45,20 @@ func (h *Hub) run() {
 			h.clients[client] = true
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
-				h.leaveRoom(client)
-				delete(h.clients, client)
-				close(client.send)
+				h.leave(client)
 			}
 		case m := <-h.receiver:
 			msg, err := createMessage(m.msg)
 
 			if err != nil {
 				log.Println(err)
+				h.leave(m.client)
+				return
+			}
+
+			if !m.client.joinedRoom() && msg.Type != JoinType {
+				log.Println("This user isn't joined")
+				h.leave(m.client)
 				return
 			}
 
@@ -78,6 +83,10 @@ func (h *Hub) joinRoom(client *Client, msg *Join) {
 }
 
 func (h *Hub) leaveRoom(client *Client) {
+	if !client.joinedRoom() {
+		return
+	}
+
 	room := h.rooms[client.room]
 
 	if room != nil {
@@ -88,4 +97,10 @@ func (h *Hub) leaveRoom(client *Client) {
 func (h *Hub) sendMessage(client *Client, msg *SendMsg) {
 	msg.Email = client.email
 	h.rooms[client.room].message(msg)
+}
+
+func (h *Hub) leave(client *Client) {
+	h.leaveRoom(client)
+	delete(h.clients, client)
+	close(client.send)
 }
