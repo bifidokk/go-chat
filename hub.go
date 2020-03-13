@@ -71,6 +71,8 @@ func (h *Hub) run() {
 				h.rooms[m.client.room].userList(m.client)
 			case *GetRoomList:
 				h.roomList(m.client)
+			case *AddRoom:
+				h.addRoom(m.client, msg)
 			default:
 				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
@@ -121,4 +123,21 @@ func (h *Hub) roomList(client *Client) {
 	})
 
 	client.conn.WriteJSON(msg)
+}
+
+func (h *Hub) addRoom(client *Client, msg *AddRoom) {
+	if _, ok := h.rooms[msg.Name]; ok {
+		log.Printf("Room with name \"%s\" exists", msg.Name)
+
+		return
+	}
+
+	room := newRoom(msg.Name)
+	h.rooms[msg.Name] = room
+
+	resp := newMessage(RoomAddedType, &RoomData{
+		Name: room.name,
+	})
+
+	client.conn.WriteJSON(resp)
 }

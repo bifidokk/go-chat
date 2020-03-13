@@ -12,12 +12,14 @@ const (
 	SendMsgType     = "send-msg"
 	GetUserListType = "get-users"
 	GetRoomListType = "get-rooms"
+	AddRoomType     = "add-room"
 
-	JoinedType   = "joined"
-	MessagesType = "msg"
-	UserListType = "users"
-	LeftType     = "left"
-	RoomListType = "rooms"
+	JoinedType    = "joined"
+	MessagesType  = "msg"
+	UserListType  = "users"
+	LeftType      = "left"
+	RoomListType  = "rooms"
+	RoomAddedType = "room-added"
 )
 
 // Client message content type
@@ -64,6 +66,7 @@ type Left struct {
 	Email string `json:"email"`
 }
 
+// Room data message
 type RoomData struct {
 	Name string `json:"name"`
 }
@@ -71,9 +74,14 @@ type RoomData struct {
 // GetRoomList message
 type GetRoomList struct{}
 
-// UserList message
+// RoomList message
 type RoomList struct {
 	Rooms []RoomData `json:"rooms"`
+}
+
+// AddRoom message
+type AddRoom struct {
+	Name string
 }
 
 var typeHandlers = map[string]func() interface{}{
@@ -81,6 +89,7 @@ var typeHandlers = map[string]func() interface{}{
 	SendMsgType:     func() interface{} { return &SendMsg{} },
 	GetUserListType: func() interface{} { return &GetUserList{} },
 	GetRoomListType: func() interface{} { return &GetRoomList{} },
+	AddRoomType:     func() interface{} { return &AddRoom{} },
 }
 
 func createMessage(input []byte) (Message, error) {
