@@ -69,6 +69,8 @@ func (h *Hub) run() {
 				h.sendMessage(m.client, msg)
 			case *GetUserList:
 				h.rooms[m.client.room].userList(m.client)
+			case *GetRoomList:
+				h.roomList(m.client)
 			default:
 				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
@@ -103,4 +105,20 @@ func (h *Hub) leave(client *Client) {
 	h.leaveRoom(client)
 	delete(h.clients, client)
 	close(client.send)
+}
+
+func (h *Hub) roomList(client *Client) {
+	var rooms []RoomData
+
+	for _, room := range h.rooms {
+		rooms = append(rooms, RoomData{
+			Name: room.name,
+		})
+	}
+
+	msg := newMessage(RoomListType, &RoomList{
+		Rooms: rooms,
+	})
+
+	client.conn.WriteJSON(msg)
 }
