@@ -53,13 +53,13 @@ func (h *Hub) run() {
 			if err != nil {
 				log.Println(err)
 				h.leave(m.client)
-				return
+				continue
 			}
 
 			if !m.client.joinedRoom() && msg.Type != JoinType {
 				log.Println("This user isn't joined")
 				h.leave(m.client)
-				return
+				continue
 			}
 
 			switch msg := msg.Msg.(type) {
