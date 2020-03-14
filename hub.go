@@ -14,7 +14,6 @@ type Hub struct {
 	clients    map[*Client]bool
 	rooms      map[string]*Room
 	receiver   chan *ClientMsg
-	broadcast  chan []byte
 	register   chan *Client
 	unregister chan *Client
 }
@@ -30,7 +29,6 @@ func newHub() *Hub {
 		clients:    make(map[*Client]bool),
 		rooms:      make(map[string]*Room),
 		receiver:   make(chan *ClientMsg),
-		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 	}
@@ -72,7 +70,7 @@ func (h *Hub) run() {
 			case *GetRoomList:
 				h.roomList(m.client)
 			case *AddRoom:
-				h.addRoom(m.client, msg)
+				h.addRoom(msg)
 			default:
 				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
@@ -125,7 +123,7 @@ func (h *Hub) roomList(client *Client) {
 	client.conn.WriteJSON(msg)
 }
 
-func (h *Hub) addRoom(client *Client, msg *AddRoom) {
+func (h *Hub) addRoom(msg *AddRoom) {
 	if _, ok := h.rooms[msg.Name]; ok {
 		log.Printf("Room with name \"%s\" exists", msg.Name)
 
@@ -139,5 +137,11 @@ func (h *Hub) addRoom(client *Client, msg *AddRoom) {
 		Name: room.name,
 	})
 
-	client.conn.WriteJSON(resp)
+	h.broadcast(resp)
+}
+
+func (h *Hub) broadcast(message *Message) {
+	for c := range h.clients {
+		c.conn.WriteJSON(message)
+	}
 }
