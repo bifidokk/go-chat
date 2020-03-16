@@ -13,6 +13,7 @@ const (
 	GetUserListType = "get-users"
 	GetRoomListType = "get-rooms"
 	AddRoomType     = "add-room"
+	JoinRoomType    = "joined-room"
 
 	JoinedType    = "joined"
 	MessagesType  = "msg"
@@ -20,12 +21,6 @@ const (
 	LeftType      = "left"
 	RoomListType  = "rooms"
 	RoomAddedType = "room-added"
-)
-
-// Client message content type
-const (
-	TextMsg = "text"
-	LogMsg  = "log"
 )
 
 // Message is abstract message struct
@@ -37,6 +32,11 @@ type Message struct {
 // Join message
 type Join struct {
 	Email string `json:"email"`
+}
+
+// Join room message
+type JoinRoom struct {
+	Name string `json:"name"`
 }
 
 // Joined message
@@ -90,6 +90,7 @@ var typeHandlers = map[string]func() interface{}{
 	GetUserListType: func() interface{} { return &GetUserList{} },
 	GetRoomListType: func() interface{} { return &GetRoomList{} },
 	AddRoomType:     func() interface{} { return &AddRoom{} },
+	JoinRoomType:    func() interface{} { return &JoinRoom{} },
 }
 
 func createMessage(input []byte) (Message, error) {

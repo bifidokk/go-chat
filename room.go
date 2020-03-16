@@ -16,6 +16,7 @@ func newRoom(name string) *Room {
 
 func (r *Room) join(c *Client) {
 	r.clients[c] = true
+	c.room = defaultRoomName
 	msg := newMessage(JoinedType, &Joined{
 		Email: c.email,
 		Date:  time.Now(),

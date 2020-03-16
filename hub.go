@@ -62,7 +62,8 @@ func (h *Hub) run() {
 
 			switch msg := msg.Msg.(type) {
 			case *Join:
-				h.joinRoom(m.client, msg)
+				h.join(m.client, msg)
+				h.joinRoom(m.client, defaultRoomName)
 			case *SendMsg:
 				h.sendMessage(m.client, msg)
 			case *GetUserList:
@@ -71,6 +72,8 @@ func (h *Hub) run() {
 				h.roomList(m.client)
 			case *AddRoom:
 				h.addRoom(msg)
+			case *JoinRoom:
+				h.joinRoom(m.client, msg.Name)
 			default:
 				log.Fatalln(fmt.Sprintf("Can't resolve type of msg (%v, %T)\n", msg, msg))
 			}
@@ -78,10 +81,23 @@ func (h *Hub) run() {
 	}
 }
 
-func (h *Hub) joinRoom(client *Client, msg *Join) {
-	client.room = defaultRoomName
+func (h *Hub) join(client *Client, msg *Join) {
 	client.email = msg.Email
-	h.rooms[defaultRoomName].join(client)
+}
+
+func (h *Hub) joinRoom(client *Client, roomName string) {
+	if _, ok := h.rooms[roomName]; !ok {
+		log.Printf("Room %s doesn't exist", roomName)
+		return
+	}
+
+	currentRoomName := client.room
+	if _, ok := h.rooms[currentRoomName]; ok {
+		currentRoom := h.rooms[currentRoomName]
+		currentRoom.remove(client)
+	}
+
+	h.rooms[roomName].join(client)
 }
 
 func (h *Hub) leaveRoom(client *Client) {
