@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Client message type
@@ -41,6 +43,7 @@ type JoinRoom struct {
 
 // Joined message
 type Joined struct {
+	Id    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 	Date  time.Time `json:"date"`
 	Room  string    `json:"room"`

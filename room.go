@@ -18,6 +18,7 @@ func (r *Room) join(c *Client) {
 	r.clients[c] = true
 	c.room = r.name
 	msg := newMessage(JoinedType, &Joined{
+		Id:    c.id,
 		Email: c.email,
 		Date:  time.Now(),
 		Room:  r.name,

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/satori/go.uuid"
 )
 
 const (
@@ -30,6 +31,7 @@ var (
 
 // Client : connected client data
 type Client struct {
+	id    uuid.UUID
 	room  string
 	email string
 	hub   *Hub
@@ -131,6 +133,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
+		id:   uuid.Must(uuid.NewV4()),
 		hub:  hub,
 		conn: conn,
 		send: make(chan []byte, 256),

@@ -94,7 +94,7 @@ func (h *Hub) joinRoom(client *Client, roomName string) {
 	currentRoomName := client.room
 
 	if currentRoomName == roomName {
-		log.Printf("Client %s alreay joined room %s", client.email, roomName)
+		log.Printf("Client %s already joined room %s", client.email, roomName)
 		return
 	}
 
