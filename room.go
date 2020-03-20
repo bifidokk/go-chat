@@ -16,10 +16,11 @@ func newRoom(name string) *Room {
 
 func (r *Room) join(c *Client) {
 	r.clients[c] = true
-	c.room = defaultRoomName
+	c.room = r.name
 	msg := newMessage(JoinedType, &Joined{
 		Email: c.email,
 		Date:  time.Now(),
+		Room:  r.name,
 	})
 
 	r.broadcast(msg)

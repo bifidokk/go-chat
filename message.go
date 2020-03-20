@@ -13,7 +13,7 @@ const (
 	GetUserListType = "get-users"
 	GetRoomListType = "get-rooms"
 	AddRoomType     = "add-room"
-	JoinRoomType    = "joined-room"
+	JoinRoomType    = "join-room"
 
 	JoinedType    = "joined"
 	MessagesType  = "msg"
@@ -43,6 +43,7 @@ type JoinRoom struct {
 type Joined struct {
 	Email string    `json:"email"`
 	Date  time.Time `json:"date"`
+	Room  string    `json:"room"`
 }
 
 // SendMsg message
